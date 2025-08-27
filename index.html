@@ -1,190 +1,627 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Jadwal Pelajaran Kelas XII</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      color: #000;
-    }
-    h2, h3 {
-      text-align: center;
-      margin: 5px 0;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-      font-size: 14px;
-    }
-    th, td {
-      border: 1px solid #000;
-      padding: 6px;
-      text-align: center;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .istirahat, .shalat {
-      background-color: #e6f7ff;
-      font-style: italic;
-      font-weight: bold;
-    }
-    .btn-container {
-      text-align: center;
-      margin: 20px 0;
-    }
-    button {
-      margin: 5px;
-      padding: 8px 15px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .print { background-color: #4CAF50; color: white; }
-    .save { background-color: #2196F3; color: white; }
-    .share { background-color: #25D366; color: white; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Pelajaran Sekolah</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: var(--primary);
+        }
+
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--light-gray);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .schedule-table th, .schedule-table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid var(--light-gray);
+        }
+
+        .schedule-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .schedule-table tr:nth-child(even) {
+            background-color: var(--light);
+        }
+
+        .schedule-table tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+            
+            .schedule-table {
+                font-size: 0.8rem;
+            }
+            
+            .schedule-table th, .schedule-table td {
+                padding: 8px;
+            }
+        }
+    </style>
 </head>
 <body>
-  
-  <!-- Tombol -->
-  <div class="btn-container">
-    <button class="print" onclick="window.print()">Cetak PDF</button>
-    <button class="save" onclick="downloadFile()">Simpan Manual</button>
-    <button class="share" onclick="shareWA()">Share WhatsApp</button>
-  </div>
+    <div class="container">
+        <header>
+            <h1>Jadwal Pelajaran Sekolah</h1>
+            <p>Atur jadwal pelajaran dengan mudah dan efisien</p>
+        </header>
 
-  <table id="jadwal">
-    <thead>
-      <tr>
-        <th>Hari</th>
-        <th>Jam ke</th>
-        <th>Waktu</th>
-        <th>Mata Pelajaran</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <title>Jadwal Pelajaran Kelas XII</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      color: #000;
-    }
-    h2, h3 {
-      text-align: center;
-      margin: 5px 0;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-      font-size: 14px;
-    }
-    th, td {
-      border: 1px solid #000;
-      padding: 6px;
-      text-align: center;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .istirahat, .shalat {
-      background-color: #e6f7ff;
-      font-style: italic;
-      font-weight: bold;
-    }
-    
-  </style>
-</head>
-<body>
-  <h2>JADWAL PELAJARAN SEMESTER GANJIL</h2>
-  <h3>SMK PLUS INSAN CEMERLANG<br>Tahun Pelajaran 2025/2026<br>Kelas XII</h3>
-      <!-- Senin -->
-      <tr><td rowspan="8">Senin</td><td>1</td><td>07.00 - 08.00</td><td>Upacara</td></tr>
-      <tr><td>2</td><td>08.00 - 08.30</td><td>Matematika</td></tr>
-      <tr><td>3</td><td>08.30 - 09.00</td><td>Matematika</td></tr>
-      <tr><td>4</td><td>09.00 - 09.30</td><td class="istirahat">Istirahat</td></tr>
-      <tr><td>5</td><td>10.00 - 10.35</td><td>Matematika</td></tr>
-      <tr><td>6</td><td>10.35 - 11.10</td><td>Pendidikan Pancasila</td></tr>
-      <tr><td>7</td><td>11.10 - 11.45</td><td>Pendidikan Pancasila</td></tr>
-      <tr><td>8</td><td>11.45 - 12.20</td><td class="shalat">Shalat Dzuhur</td></tr>
-      <tr><td colspan="4" class="istirahat">Tadarus Bersama</td></tr>
+        <div class="controls">
+            <button class="btn btn-primary" id="addScheduleBtn">
+                <i class="fas fa-plus"></i> Tambah Jadwal
+            </button>
+            <div>
+                <button class="btn btn-success" id="shareBtn">
+                    <i class="fab fa-whatsapp"></i> Share WhatsApp
+                </button>
+                <button class="btn btn-warning" id="printBtn">
+                    <i class="fas fa-print"></i> Cetak PDF
+                </button>
+            </div>
+        </div>
 
-      <!-- Selasa -->
-      <tr><td rowspan="8">Selasa</td><td>1</td><td>07.00 - 07.40</td><td>Bahasa Inggris</td></tr>
-      <tr><td>2</td><td>07.40 - 08.20</td><td>Bahasa Inggris</td></tr>
-      <tr><td>3</td><td>08.20 - 09.00</td><td>Bahasa Sunda</td></tr>
-      <tr><td>4</td><td>09.00 - 09.40</td><td>Bimbingan PKL</td></tr>
-      <tr><td>5</td><td>09.40 - 10.10</td><td class="istirahat">Istirahat</td></tr>
-      <tr><td>6</td><td>10.10 - 10.45</td><td>PAI & Budi Pekerti</td></tr>
-      <tr><td>7</td><td>10.45 - 11.20</td><td>PAI & Budi Pekerti</td></tr>
-      <tr><td>8</td><td>11.20 - 11.55</td><td>Sejarah</td></tr>
-      <tr><td colspan="4" class="shalat">Shalat Dzuhur</td></tr>
+        <div id="scheduleContainer">
+            <!-- Jadwal akan ditampilkan di sini -->
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Hari</th>
+                        <th>Waktu</th>
+                        <th>Mata Pelajaran</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                    <!-- Data jadwal akan diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
 
-      <!-- Rabu -->
-      <tr><td rowspan="7">Rabu</td><td>1</td><td>07.00 - 08.10</td><td>Pemrograman Dasar, Web, dan Berorientasi Objek</td></tr>
-      <tr><td>2</td><td>08.10 - 08.40</td><td>Pemrograman Dasar, Web, dan Berorientasi Objek</td></tr>
-      <tr><td>3</td><td>08.40 - 09.10</td><td>Produk Kreatif & Kewirausahaan</td></tr>
-      <tr><td>4</td><td>09.10 - 09.40</td><td>PJOK</td></tr>
-      <tr><td>5</td><td>09.40 - 10.10</td><td class="istirahat">Istirahat</td></tr>
-      <tr><td>6</td><td>10.10 - 10.45</td><td>Matematika</td></tr>
-      <tr><td>7</td><td>10.45 - 11.20</td><td>Bahasa Indonesia</td></tr>
-      <tr><td colspan="4" class="shalat">Shalat Dzuhur</td></tr>
+        <footer>
+            <p>&copy; 2023 Aplikasi Jadwal Pelajaran Sekolah. All rights reserved.</p>
+        </footer>
+    </div>
 
-      <!-- Kamis -->
-      <tr><td rowspan="8">Kamis</td><td>1</td><td>07.00 - 08.10</td><td>Pendidikan Pancasila</td></tr>
-      <tr><td>2</td><td>08.10 - 08.40</td><td>Bahasa Sunda</td></tr>
-      <tr><td>3</td><td>08.40 - 09.10</td><td>Bahasa Inggris</td></tr>
-      <tr><td>4</td><td>09.10 - 09.40</td><td>BTQ</td></tr>
-      <tr><td>5</td><td>09.40 - 10.10</td><td class="istirahat">Istirahat</td></tr>
-      <tr><td>6</td><td>10.10 - 10.45</td><td>Bimbingan PKL</td></tr>
-      <tr><td>7</td><td>10.45 - 11.20</td><td>Bimbingan PKL</td></tr>
-      <tr><td>8</td><td>11.20 - 11.55</td><td>Bimbingan PKL</td></tr>
-      <tr><td colspan="4" class="shalat">Shalat Dzuhur</td></tr>
+    <!-- Modal untuk menambah/mengedit jadwal -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Tambah Jadwal Pelajaran</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="scheduleForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label for="hari">Hari</label>
+                    <select id="hari" required>
+                        <option value="">Pilih Hari</option>
+                        <option value="Senin">Senin</option>
+                        <option value="Selasa">Selasa</option>
+                        <option value="Rabu">Rabu</option>
+                        <option value="Kamis">Kamis</option>
+                        <option value="Jumat">Jumat</option>
+                        <option value="Sabtu">Sabtu</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="waktu">Waktu</label>
+                    <input type="time" id="waktu" required>
+                </div>
+                <div class="form-group">
+                    <label for="mataPelajaran">Mata Pelajaran</label>
+                    <input type="text" id="mataPelajaran" placeholder="Masukkan mata pelajaran" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan Jadwal</button>
+            </form>
+        </div>
+    </div>
 
-      <!-- Jumat -->
-      <tr><td rowspan="4">Jumat</td><td>1</td><td>07.00 - 08.30</td><td class="shalat">Shalat Dhuha & Tadarus Bersama</td></tr>
-      <tr><td>2</td><td>08.30 - 09.00</td><td>Kewirausahaan</td></tr>
-      <tr><td>3</td><td>09.00 - 09.30</td><td>Kewirausahaan</td></tr>
-      <tr><td>4</td><td>09.30 - 10.00</td><td class="istirahat">Istirahat</td></tr>
-      <tr><td colspan="4" class="shalat">Shalat Jumat</td></tr>
+    <script type="module">
+        // Import Firebase functions
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { 
+            getFirestore,
+            collection,
+            doc,
+            getDocs,
+            getDoc,
+            addDoc,
+            deleteDoc,
+            updateDoc,
+            query,
+            orderBy
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
-      <!-- Sabtu -->
-      <tr><td rowspan="3">Sabtu</td><td>1</td><td>07.00 - 07.30</td><td>Istighosah</td></tr>
-      <tr><td>2</td><td>07.30 - 09.00</td><td>Pramuka</td></tr>
-      <tr><td>3</td><td>09.30 - 10.30</td><td>Ta'lim Muta’alim</td></tr>
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdr0fxnYpfeG2b6GlTQ_-4TqpmGk2uvOk",
+            authDomain: "insan-cemerlang-80713.firebaseapp.com",
+            projectId: "insan-cemerlang-80713",
+            storageBucket: "insan-cemerlang-80713.appspot.com",
+            messagingSenderId: "1016858047753",
+            appId: "1:1016858047753:web:0534dda2085c2adab68fd8",
+            measurementId: "G-E7G0K9XTCD"
+        };
 
-      <!-- dst... (jadwal lainnya tetap sama dengan kode kamu) -->
-    </tbody>
-  </table>
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-  <script>
-    // Simpan manual ke file .txt
-    function downloadFile() {
-      const jadwal = document.getElementById("jadwal").innerText;
-      const blob = new Blob([jadwal], { type: "text/plain" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "jadwal_pelajaran.txt";
-      link.click();
-    }
+        // Referensi ke koleksi jadwal
+        const schedulesCollection = collection(db, 'schedules');
 
-    // Share ke WhatsApp
-    function shareWA() {
-      const text = "Jadwal Pelajaran Kelas XII SMK Plus Insan Cemerlang:\n\n" +
-                   document.getElementById("jadwal").innerText;
-      const url = "https://wa.me/?text=" + encodeURIComponent(text);
-      window.open(url, "_blank");
-    }
-  </script>
+        // Elemen DOM
+        const addScheduleBtn = document.getElementById('addScheduleBtn');
+        const scheduleModal = document.getElementById('scheduleModal');
+        const closeModal = document.querySelector('.close');
+        const scheduleForm = document.getElementById('scheduleForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const scheduleBody = document.getElementById('scheduleBody');
+        const shareBtn = document.getElementById('shareBtn');
+        const printBtn = document.getElementById('printBtn');
+
+        // Variabel untuk menyimpan data jadwal
+        let schedules = [];
+        let editingId = null;
+
+        // Fungsi untuk menampilkan modal
+        function openModal() {
+            scheduleModal.style.display = 'flex';
+        }
+
+        // Fungsi untuk menutup modal
+        function closeModalFunc() {
+            scheduleModal.style.display = 'none';
+            editingId = null;
+            scheduleForm.reset();
+        }
+
+        // Event listener untuk tombol tambah jadwal
+        addScheduleBtn.addEventListener('click', () => {
+            modalTitle.textContent = 'Tambah Jadwal Pelajaran';
+            openModal();
+        });
+
+        // Event listener untuk menutup modal
+        closeModal.addEventListener('click', closeModalFunc);
+
+        // Event listener untuk klik di luar modal
+        window.addEventListener('click', (e) => {
+            if (e.target === scheduleModal) {
+                closeModalFunc();
+            }
+        });
+
+        // Fungsi untuk mengambil data jadwal dari Firestore
+        async function getSchedules() {
+            try {
+                const q = query(schedulesCollection, orderBy('waktu'));
+                const querySnapshot = await getDocs(q);
+                
+                schedules = [];
+                querySnapshot.forEach((doc) => {
+                    schedules.push({ id: doc.id, ...doc.data() });
+                });
+                
+                displaySchedules();
+            } catch (error) {
+                console.error('Error getting schedules:', error);
+                alert('Terjadi kesalahan saat mengambil data jadwal.');
+            }
+        }
+
+        // Fungsi untuk menampilkan jadwal di tabel
+        function displaySchedules() {
+            scheduleBody.innerHTML = '';
+            
+            if (schedules.length === 0) {
+                scheduleBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Tidak ada jadwal pelajaran.</td></tr>';
+                return;
+            }
+            
+            schedules.forEach(schedule => {
+                const row = document.createElement('tr');
+                
+                // Format waktu menjadi format yang lebih mudah dibaca
+                const time = new Date(`2000-01-01T${schedule.waktu}`);
+                const formattedTime = time.toLocaleTimeString('id-ID', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                row.innerHTML = `
+                    <td>${schedule.hari}</td>
+                    <td>${formattedTime}</td>
+                    <td>${schedule.mataPelajaran}</td>
+                    <td class="action-buttons">
+                        <button class="action-btn edit-btn" data-id="${schedule.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${schedule.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                scheduleBody.appendChild(row);
+            });
+            
+            // Tambahkan event listener untuk tombol edit dan hapus
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    editSchedule(id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    deleteSchedule(id);
+                });
+            });
+        }
+
+        // Fungsi untuk mengedit jadwal
+        async function editSchedule(id) {
+            try {
+                const scheduleDoc = doc(db, 'schedules', id);
+                const docSnap = await getDoc(scheduleDoc);
+                
+                if (docSnap.exists()) {
+                    const schedule = docSnap.data();
+                    editingId = id;
+                    
+                    // Isi form dengan data jadwal yang akan diedit
+                    document.getElementById('hari').value = schedule.hari;
+                    document.getElementById('waktu').value = schedule.waktu;
+                    document.getElementById('mataPelajaran').value = schedule.mataPelajaran;
+                    
+                    modalTitle.textContent = 'Edit Jadwal Pelajaran';
+                    openModal();
+                } else {
+                    alert('Jadwal tidak ditemukan!');
+                }
+            } catch (error) {
+                console.error('Error getting schedule:', error);
+                alert('Terjadi kesalahan saat mengambil data jadwal.');
+            }
+        }
+
+        // Fungsi untuk menghapus jadwal
+        async function deleteSchedule(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
+                try {
+                    await deleteDoc(doc(db, 'schedules', id));
+                    alert('Jadwal berhasil dihapus!');
+                    getSchedules(); // Refresh data
+                } catch (error) {
+                    console.error('Error deleting schedule:', error);
+                    alert('Terjadi kesalahan saat menghapus jadwal.');
+                }
+            }
+        }
+
+        // Event listener untuk form jadwal
+        scheduleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const hari = document.getElementById('hari').value;
+            const waktu = document.getElementById('waktu').value;
+            const mataPelajaran = document.getElementById('mataPelajaran').value;
+            
+            try {
+                if (editingId) {
+                    // Update jadwal yang sudah ada
+                    const scheduleDoc = doc(db, 'schedules', editingId);
+                    await updateDoc(scheduleDoc, {
+                        hari,
+                        waktu,
+                        mataPelajaran
+                    });
+                    
+                    alert('Jadwal berhasil diperbarui!');
+                } else {
+                    // Tambah jadwal baru
+                    await addDoc(schedulesCollection, {
+                        hari,
+                        waktu,
+                        mataPelajaran
+                    });
+                    
+                    alert('Jadwal berhasil ditambahkan!');
+                }
+                
+                closeModalFunc();
+                getSchedules(); // Refresh data
+            } catch (error) {
+                console.error('Error saving schedule:', error);
+                alert('Terjadi kesalahan saat menyimpan jadwal.');
+            }
+        });
+
+        // Fungsi untuk berbagi jadwal melalui WhatsApp
+        shareBtn.addEventListener('click', () => {
+            if (schedules.length === 0) {
+                alert('Tidak ada jadwal untuk dibagikan.');
+                return;
+            }
+            
+            let message = "Jadwal Pelajaran:\n\n";
+            
+            schedules.forEach(schedule => {
+                const time = new Date(`2000-01-01T${schedule.waktu}`);
+                const formattedTime = time.toLocaleTimeString('id-ID', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                message += `${schedule.hari} - ${formattedTime}: ${schedule.mataPelajaran}\n`;
+            });
+            
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        });
+
+        // Fungsi untuk mencetak jadwal sebagai PDF
+        printBtn.addEventListener('click', () => {
+            if (schedules.length === 0) {
+                alert('Tidak ada jadwal untuk dicetak.');
+                return;
+            }
+            
+            // Gunakan jsPDF untuk membuat PDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Judul
+            doc.setFontSize(20);
+            doc.text('Jadwal Pelajaran Sekolah', 105, 15, { align: 'center' });
+            
+            // Data untuk tabel
+            const tableData = schedules.map(schedule => {
+                const time = new Date(`2000-01-01T${schedule.waktu}`);
+                const formattedTime = time.toLocaleTimeString('id-ID', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                return [schedule.hari, formattedTime, schedule.mataPelajaran];
+            });
+            
+            // Buat tabel
+            doc.autoTable({
+                head: [['Hari', 'Waktu', 'Mata Pelajaran']],
+                body: tableData,
+                startY: 25,
+                theme: 'grid',
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [67, 97, 238] }
+            });
+            
+            // Simpan PDF
+            doc.save('jadwal-pelajaran.pdf');
+        });
+
+        // Inisialisasi aplikasi dengan mengambil data jadwal
+        getSchedules();
+    </script>
 </body>
 </html>
