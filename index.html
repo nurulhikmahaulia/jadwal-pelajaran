@@ -1,494 +1,621 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jadwal Pelajaran Kelas XII</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jadwal Pelajaran Sekolah</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      color: #000;
-      background-color: #f9f9f9;
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --light: #f8f9fa;
+      --dark: #212529;
     }
-    h2, h3 {
-      text-align: center;
-      margin: 5px 0;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-      font-size: 14px;
-      background-color: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    th, td {
-      border: 1px solid #000;
-      padding: 6px;
-      text-align: center;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .istirahat, .shalat {
-      background-color: #e6f7ff;
-      font-style: italic;
-      font-weight: bold;
-    }
-    .btn-container {
-      text-align: center;
-      margin: 20px 0;
-    }
-    button {
-      margin: 5px;
-      padding: 8px 15px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .print { background-color: #4CAF50; color: white; }
-    .save { background-color: #2196F3; color: white; }
-    .share { background-color: #25D366; color: white; }
-    .tambah { background-color: #FF9800; color: white; }
     
-    /* Modal styles */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.4);
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      color: #333;
     }
-    .modal-content {
-      background-color: #fefefe;
-      margin: 10% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 600px;
-      border-radius: 8px;
+    
+    .navbar {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
     }
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
+    
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+      border: none;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--secondary);
+      border-color: var(--secondary);
+    }
+    
+    .schedule-cell {
+      transition: all 0.2s ease;
+    }
+    
+    .schedule-cell:hover {
+      background-color: rgba(67, 97, 238, 0.1);
       cursor: pointer;
     }
-    .close:hover {
-      color: black;
+    
+    .action-buttons .btn {
+      margin-right: 5px;
     }
-    .form-group {
-      margin-bottom: 15px;
+    
+    .print-only {
+      display: none;
     }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
+    
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .print-section, .print-section * {
+        visibility: visible;
+      }
+      .print-section {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .print-only {
+        display: block;
+      }
+      .no-print {
+        display: none !important;
+      }
     }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    .form-actions {
-      text-align: right;
-      margin-top: 20px;
-    }
-    .btn-ubah, .btn-hapus {
-      padding: 4px 8px;
-      font-size: 12px;
-      margin: 2px;
-    }
-    .btn-ubah { background-color: #FFC107; color: black; }
-    .btn-hapus { background-color: #F44336; color: white; }
   </style>
 </head>
+
 <body>
-  
-  <!-- Tombol -->
-  <div class="btn-container">
-    <button class="print" onclick="window.print()">Cetak PDF</button>
-    <button class="save" onclick="downloadFile()">Simpan Manual</button>
-    <button class="share" onclick="shareWA()">Share WhatsApp</button>
-    <button class="tambah" onclick="bukaModalTambah()">Tambah Jadwal</button>
-  </div>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <i class="fas fa-calendar-alt me-2"></i>Jadwal Pelajaran
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="printBtn"><i class="fas fa-print me-1"></i> Cetak</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="shareBtn"><i class="fab fa-whatsapp me-1"></i> Bagikan</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-  <h2>JADWAL PELAJARAN SEMESTER GANJIL</h2>
-  <h3>SMK PLUS INSAN CEMERLANG<br>Tahun Pelajaran 2025/2026<br>Kelas XII</h3>
+  <div class="container mb-5">
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h2 class="text-dark">Jadwal Pelajaran</h2>
+        <p class="text-muted">Kelola jadwal pelajaran dengan mudah dan efisien</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahModal">
+          <i class="fas fa-plus me-1"></i> Tambah Jadwal
+        </button>
+      </div>
+    </div>
 
-  <table id="jadwal">
-    <thead>
-      <tr>
-        <th>Hari</th>
-        <th>Jam ke</th>
-        <th>Waktu</th>
-        <th>Mata Pelajaran</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Senin -->
-      <tr id="row-1">
-        <td rowspan="8">Senin</td>
-        <td>1</td>
-        <td>07.00 - 08.00</td>
-        <td>Upacara</td>
-        <td>
-          <button class="btn-ubah" onclick="bukaModalUbah(1)">Ubah</button>
-          <button class="btn-hapus" onclick="hapusJadwal(1)">Hapus</button>
-        </td>
-      </tr>
-      <tr id="row-2">
-        <td>2</td>
-        <td>08.00 - 08.30</td>
-        <td>Matematika</td>
-        <td>
-          <button class="btn-ubah" onclick="bukaModalUbah(2)">Ubah</button>
-          <button class="btn-hapus" onclick="hapusJadwal(2)">Hapus</button>
-        </td>
-      </tr>
-      <tr id="row-3">
-        <td>3</td>
-        <td>08.30 - 09.00</td>
-        <td>Matematika</td>
-        <td>
-          <button class="btn-ubah" onclick="bukaModalUbah(3)">Ubah</button>
-          <button class="btn-hapus" onclick="hapusJadwal(3)">Hapus</button>
-        </td>
-      </tr>
-      <tr id="row-4">
-        <td>4</td>
-        <td>09.00 - 09.30</td>
-        <td class="istirahat">Istirahat</td>
-        <td>
-          <button class="btn-ubah" onclick="bukaModalUbah(4)">Ubah</button>
-          <button class="btn-hapus" onclick="hapusJadwal(4)">Hapus</button>
-        </td>
-      </tr>
-      <tr id="row-5">
-        <td>5</td>
-        <td>10.00 - 10.35</td>
-        <td>Matematika</td>
-        <td>
-          <button class="btn-ubah" onclick="bukaModalUbah(5)">Ubah</button>
-          <button class="btn-hapus" onclick="hapusJadwal(5)">Hapus</button>
-        </td>
-      </tr>
-      <tr id="row-6">
-        <td>6</td>
-        <td>10.35 - 11.10</td>
-        <td>Pendidikan Pancasila</td>
-        <td>
-          <button class="btn-ubah" onclick="bukaModalUbah(6)">Ubah</button>
-          <button class="btn-hapus" onclick="hapusJadwal(6)">Hapus</button>
-        </td>
-      </tr>
-      <tr id="row-7">
-        <td>7</td>
-        <td>11.10 - 11.45</td>
-        <td>Pendidikan Pancasila</td>
-        <td>
-          <button class="btn-ubah" onclick="bukaModalUbah(7)">Ubah</button>
-          <button class="btn-hapus" onclick="hapusJadwal(7)">Hapus</button>
-        </td>
-      </tr>
-      <tr id="row-8">
-        <td>8</td>
-        <td>11.45 - 12.20</td>
-        <td class="shalat">Shalat Dzuhur</td>
-        <td>
-          <button class="btn-ubah" onclick="bukaModalUbah(8)">Ubah</button>
-          <button class="btn-hapus" onclick="hapusJadwal(8)">Hapus</button>
-        </td>
-      </tr>
-
-      <!-- Data hari lainnya tetap sama, hanya ditambahkan tombol aksi -->
-      <!-- ... -->
-      
-    </tbody>
-  </table>
-
-  <!-- Modal Form Tambah -->
-  <div id="modalTambah" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="tutupModal('modalTambah')">&times;</span>
-      <h2>Tambah Jadwal Baru</h2>
-      <form id="formTambah" onsubmit="tambahJadwal(event)">
-        <div class="form-group">
-          <label for="tambahHari">Hari:</label>
-          <select id="tambahHari" required>
-            <option value="">Pilih Hari</option>
-            <option value="Senin">Senin</option>
-            <option value="Selasa">Selasa</option>
-            <option value="Rabu">Rabu</option>
-            <option value="Kamis">Kamis</option>
-            <option value="Jumat">Jumat</option>
-            <option value="Sabtu">Sabtu</option>
-          </select>
+    <!-- Jadwal Table -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Daftar Jadwal Pelajaran</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover" id="jadwal-table">
+            <thead>
+              <tr>
+                <th scope="col">Hari</th>
+                <th scope="col">Waktu</th>
+                <th scope="col">Mata Pelajaran</th>
+                <th scope="col">Guru</th>
+                <th scope="col">Kelas</th>
+                <th scope="col" class="text-center no-print">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Data akan diisi oleh JavaScript -->
+            </tbody>
+          </table>
         </div>
-        <div class="form-group">
-          <label for="tambahJam">Jam ke:</label>
-          <input type="number" id="tambahJam" min="1" required>
-        </div>
-        <div class="form-group">
-          <label for="tambahWaktu">Waktu:</label>
-          <input type="text" id="tambahWaktu" placeholder="Contoh: 07.00 - 08.00" required>
-        </div>
-        <div class="form-group">
-          <label for="tambahPelajaran">Mata Pelajaran:</label>
-          <input type="text" id="tambahPelajaran" required>
-        </div>
-        <div class="form-group">
-          <label for="tambahJenis">Jenis:</label>
-          <select id="tambahJenis">
-            <option value="normal">Normal</option>
-            <option value="istirahat">Istirahat</option>
-            <option value="shalat">Shalat</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button type="button" onclick="tutupModal('modalTambah')">Batal</button>
-          <button type="submit" class="tambah">Simpan</button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
 
-  <!-- Modal Form Ubah -->
-  <div id="modalUbah" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="tutupModal('modalUbah')">&times;</span>
-      <h2>Ubah Jadwal</h2>
-      <form id="formUbah" onsubmit="ubahJadwal(event)">
-        <input type="hidden" id="ubahId">
-        <div class="form-group">
-          <label for="ubahHari">Hari:</label>
-          <select id="ubahHari" required>
-            <option value="">Pilih Hari</option>
-            <option value="Senin">Senin</option>
-            <option value="Selasa">Selasa</option>
-            <option value="Rabu">Rabu</option>
-            <option value="Kamis">Kamis</option>
-            <option value="Jumat">Jumat</option>
-            <option value="Sabtu">Sabtu</option>
-          </select>
+  <!-- Modal Tambah -->
+  <div class="modal fade" id="tambahModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Tambah Jadwal Pelajaran</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="form-group">
-          <label for="ubahJam">Jam ke:</label>
-          <input type="number" id="ubahJam" min="1" required>
+        <div class="modal-body">
+          <form id="formTambah">
+            <div class="mb-3">
+              <label for="hari" class="form-label">Hari</label>
+              <select class="form-select" id="hari" required>
+                <option value="">Pilih Hari</option>
+                <option value="Senin">Senin</option>
+                <option value="Selasa">Selasa</option>
+                <option value="Rabu">Rabu</option>
+                <option value="Kamis">Kamis</option>
+                <option value="Jumat">Jumat</option>
+                <option value="Sabtu">Sabtu</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="waktuMulai" class="form-label">Waktu Mulai</label>
+              <input type="time" class="form-control" id="waktuMulai" required>
+            </div>
+            <div class="mb-3">
+              <label for="waktuSelesai" class="form-label">Waktu Selesai</label>
+              <input type="time" class="form-control" id="waktuSelesai" required>
+            </div>
+            <div class="mb-3">
+              <label for="mataPelajaran" class="form-label">Mata Pelajaran</label>
+              <input type="text" class="form-control" id="mataPelajaran" required>
+            </div>
+            <div class="mb-3">
+              <label for="guru" class="form-label">Guru</label>
+              <input type="text" class="form-control" id="guru" required>
+            </div>
+            <div class="mb-3">
+              <label for="kelas" class="form-label">Kelas</label>
+              <input type="text" class="form-control" id="kelas" required>
+            </div>
+          </form>
         </div>
-        <div class="form-group">
-          <label for="ubahWaktu">Waktu:</label>
-          <input type="text" id="ubahWaktu" placeholder="Contoh: 07.00 - 08.00" required>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-primary" id="simpanJadwal">Simpan</button>
         </div>
-        <div class="form-group">
-          <label for="ubahPelajaran">Mata Pelajaran:</label>
-          <input type="text" id="ubahPelajaran" required>
-        </div>
-        <div class="form-group">
-          <label for="ubahJenis">Jenis:</label>
-          <select id="ubahJenis">
-            <option value="normal">Normal</option>
-            <option value="istirahat">Istirahat</option>
-            <option value="shalat">Shalat</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button type="button" onclick="tutupModal('modalUbah')">Batal</button>
-          <button type="submit" class="ubah">Simpan Perubahan</button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
 
-  <script>
-    // Variabel global untuk menyimpan data jadwal
-    let jadwalData = [];
-    let nextId = 100; // ID untuk data baru
+  <!-- Modal Edit -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Jadwal Pelajaran</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formEdit">
+            <input type="hidden" id="editId">
+            <div class="mb-3">
+              <label for="editHari" class="form-label">Hari</label>
+              <select class="form-select" id="editHari" required>
+                <option value="Senin">Senin</option>
+                <option value="Selasa">Selasa</option>
+                <option value="Rabu">Rabu</option>
+                <option value="Kamis">Kamis</option>
+                <option value="Jumat">Jumat</option>
+                <option value="Sabtu">Sabtu</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="editWaktuMulai" class="form-label">Waktu Mulai</label>
+              <input type="time" class="form-control" id="editWaktuMulai" required>
+            </div>
+            <div class="mb-3">
+              <label for="editWaktuSelesai" class="form-label">Waktu Selesai</label>
+              <input type="time" class="form-control" id="editWaktuSelesai" required>
+            </div>
+            <div class="mb-3">
+              <label for="editMataPelajaran" class="form-label">Mata Pelajaran</label>
+              <input type="text" class="form-control" id="editMataPelajaran" required>
+            </div>
+            <div class="mb-3">
+              <label for="editGuru" class="form-label">Guru</label>
+              <input type="text" class="form-control" id="editGuru" required>
+            </div>
+            <div class="mb-3">
+              <label for="editKelas" class="form-label">Kelas</label>
+              <input type="text" class="form-control" id="editKelas" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-primary" id="updateJadwal">Perbarui</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    // Fungsi untuk modal
-    function bukaModalTambah() {
-      document.getElementById('modalTambah').style.display = 'block';
-    }
+  <!-- Print Section (Hidden) -->
+  <div id="printSection" class="print-section" style="display: none;">
+    <div class="container mt-4">
+      <div class="text-center mb-4">
+        <h3>JADWAL PELAJARAN SEKOLAH</h3>
+        <p>Tahun Ajaran 2023/2024</p>
+      </div>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Hari</th>
+            <th>Waktu</th>
+            <th>Mata Pelajaran</th>
+            <th>Guru</th>
+            <th>Kelas</th>
+          </tr>
+        </thead>
+        <tbody id="printBody">
+          <!-- Data akan diisi oleh JavaScript -->
+        </tbody>
+      </table>
+      <div class="text-end mt-4">
+        <p>Mengetahui,<br>Kepala Sekolah</p>
+        <br><br>
+        <p>_________________________</p>
+      </div>
+    </div>
+  </div>
 
-    function bukaModalUbah(id) {
-      const row = document.getElementById(`row-${id}`);
-      const cells = row.cells;
-      
-      // Isi form dengan data yang ada
-      document.getElementById('ubahId').value = id;
-      document.getElementById('ubahHari').value = cells[0].textContent;
-      document.getElementById('ubahJam').value = cells[1].textContent;
-      document.getElementById('ubahWaktu').value = cells[2].textContent;
-      document.getElementById('ubahPelajaran').value = cells[3].textContent;
-      
-      // Tentukan jenis berdasarkan kelas
-      if (cells[3].classList.contains('istirahat')) {
-        document.getElementById('ubahJenis').value = 'istirahat';
-      } else if (cells[3].classList.contains('shalat')) {
-        document.getElementById('ubahJenis').value = 'shalat';
-      } else {
-        document.getElementById('ubahJenis').value = 'normal';
+  <!-- Firebase App (core) -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'
+    import { 
+      getFirestore,
+      collection,
+      doc,
+      getDocs,
+      getDoc,
+      addDoc,
+      deleteDoc,
+      updateDoc,
+      query,
+      orderBy
+    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdr0fxnYpfeG2b6GlTQ_-4TqpmGk2uvOk",
+      authDomain: "insan-cemerlang-80713.firebaseapp.com",
+      projectId: "insan-cemerlang-80713",
+      storageBucket: "insan-cemerlang-80713.appspot.com",
+      messagingSenderId: "1016858047753",
+      appId: "1:1016858047753:web:0534dda2085c2adab68fd8",
+      measurementId: "G-E7G0K9XTCD"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Fungsi untuk mengambil daftar jadwal
+    window.ambilDaftarJadwal = async function() {
+      try {
+        const q = query(collection(db, "jadwal"), orderBy("hariOrder", "asc"), orderBy("waktuMulai", "asc"));
+        const querySnapshot = await getDocs(q);
+        const jadwalList = [];
+        
+        querySnapshot.forEach((doc) => {
+          jadwalList.push({ id: doc.id, ...doc.data() });
+        });
+        
+        return jadwalList;
+      } catch (error) {
+        console.error("Error mengambil data: ", error);
+        alert("Terjadi kesalahan saat mengambil data jadwal");
+        return [];
       }
-      
-      document.getElementById('modalUbah').style.display = 'block';
-    }
-
-    function tutupModal(modalId) {
-      document.getElementById(modalId).style.display = 'none';
     }
 
     // Fungsi untuk menambah jadwal
-    function tambahJadwal(event) {
-      event.preventDefault();
-      
-      const hari = document.getElementById('tambahHari').value;
-      const jam = document.getElementById('tambahJam').value;
-      const waktu = document.getElementById('tambahWaktu').value;
-      const pelajaran = document.getElementById('tambahPelajaran').value;
-      const jenis = document.getElementById('tambahJenis').value;
-      
-      // Buat baris baru
-      const newId = nextId++;
-      const tbody = document.querySelector('#jadwal tbody');
-      const newRow = document.createElement('tr');
-      newRow.id = `row-${newId}`;
-      
-      // Tentukan kelas CSS berdasarkan jenis
-      let kelas = '';
-      if (jenis === 'istirahat') {
-        kelas = 'class="istirahat"';
-      } else if (jenis === 'shalat') {
-        kelas = 'class="shalat"';
+    window.tambahJadwal = async function(jadwal) {
+      try {
+        // Menambahkan field hariOrder untuk pengurutan
+        const hariOrderMap = {
+          "Senin": 1, "Selasa": 2, "Rabu": 3, "Kamis": 4, "Jumat": 5, "Sabtu": 6
+        };
+        jadwal.hariOrder = hariOrderMap[jadwal.hari] || 7;
+        
+        await addDoc(collection(db, "jadwal"), jadwal);
+        return true;
+      } catch (error) {
+        console.error("Error menambah jadwal: ", error);
+        alert("Terjadi kesalahan saat menambah jadwal");
+        return false;
       }
-      
-      newRow.innerHTML = `
-        <td>${hari}</td>
-        <td>${jam}</td>
-        <td>${waktu}</td>
-        <td ${kelas}>${pelajaran}</td>
-        <td>
-          <button class="btn-ubah" onclick="bukaModalUbah(${newId})">Ubah</button>
-          <button class="btn-hapus" onclick="hapusJadwal(${newId})">Hapus</button>
-        </td>
-      `;
-      
-      // Tambahkan baris ke tabel
-      tbody.appendChild(newRow);
-      
-      // Simpan data
-      jadwalData.push({
-        id: newId,
-        hari: hari,
-        jam: jam,
-        waktu: waktu,
-        pelajaran: pelajaran,
-        jenis: jenis
-      });
-      
-      // Reset form dan tutup modal
-      document.getElementById('formTambah').reset();
-      tutupModal('modalTambah');
-      
-      alert('Jadwal berhasil ditambahkan!');
     }
 
     // Fungsi untuk mengubah jadwal
-    function ubahJadwal(event) {
-      event.preventDefault();
-      
-      const id = document.getElementById('ubahId').value;
-      const hari = document.getElementById('ubahHari').value;
-      const jam = document.getElementById('ubahJam').value;
-      const waktu = document.getElementById('ubahWaktu').value;
-      const pelajaran = document.getElementById('ubahPelajaran').value;
-      const jenis = document.getElementById('ubahJenis').value;
-      
-      // Dapatkan baris yang akan diubah
-      const row = document.getElementById(`row-${id}`);
-      const cells = row.cells;
-      
-      // Perbarui konten sel
-      cells[0].textContent = hari;
-      cells[1].textContent = jam;
-      cells[2].textContent = waktu;
-      cells[3].textContent = pelajaran;
-      
-      // Perbarui kelas CSS berdasarkan jenis
-      cells[3].className = '';
-      if (jenis === 'istirahat') {
-        cells[3].classList.add('istirahat');
-      } else if (jenis === 'shalat') {
-        cells[3].classList.add('shalat');
-      }
-      
-      // Perbarui data di array
-      const index = jadwalData.findIndex(item => item.id == id);
-      if (index !== -1) {
-        jadwalData[index] = {
-          id: parseInt(id),
-          hari: hari,
-          jam: jam,
-          waktu: waktu,
-          pelajaran: pelajaran,
-          jenis: jenis
+    window.ubahJadwal = async function(id, jadwal) {
+      try {
+        // Menambahkan field hariOrder untuk pengurutan
+        const hariOrderMap = {
+          "Senin": 1, "Selasa": 2, "Rabu": 3, "Kamis": 4, "Jumat": 5, "Sabtu": 6
         };
+        jadwal.hariOrder = hariOrderMap[jadwal.hari] || 7;
+        
+        const jadwalRef = doc(db, "jadwal", id);
+        await updateDoc(jadwalRef, jadwal);
+        return true;
+      } catch (error) {
+        console.error("Error mengubah jadwal: ", error);
+        alert("Terjadi kesalahan saat mengubah jadwal");
+        return false;
       }
-      
-      // Tutup modal
-      tutupModal('modalUbah');
-      
-      alert('Jadwal berhasil diubah!');
     }
 
     // Fungsi untuk menghapus jadwal
-    function hapusJadwal(id) {
-      if (confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
-        const row = document.getElementById(`row-${id}`);
-        row.remove();
-        
-        // Hapus dari array data
-        jadwalData = jadwalData.filter(item => item.id != id);
-        
-        alert('Jadwal berhasil dihapus!');
+    window.hapusJadwal = async function(id) {
+      try {
+        await deleteDoc(doc(db, "jadwal", id));
+        return true;
+      } catch (error) {
+        console.error("Error menghapus jadwal: ", error);
+        alert("Terjadi kesalahan saat menghapus jadwal");
+        return false;
       }
     }
+  </script>
 
-    // Fungsi untuk mencetak/simpan (tetap sama)
-    function downloadFile() {
-      const jadwal = document.getElementById("jadwal").innerText;
-      const blob = new Blob([jadwal], { type: "text/plain" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "jadwal_pelajaran.txt";
-      link.click();
+  <!-- Aplikasi JavaScript -->
+  <script>
+    $(document).ready(function() {
+      // Memuat jadwal saat halaman dimuat
+      muatJadwal();
+      
+      // Event listener untuk tombol simpan
+      $("#simpanJadwal").click(async function() {
+        const jadwal = {
+          hari: $("#hari").val(),
+          waktuMulai: $("#waktuMulai").val(),
+          waktuSelesai: $("#waktuSelesai").val(),
+          mataPelajaran: $("#mataPelajaran").val(),
+          guru: $("#guru").val(),
+          kelas: $("#kelas").val()
+        };
+        
+        if (Object.values(jadwal).some(x => x === "")) {
+          alert("Harap isi semua field!");
+          return;
+        }
+        
+        const berhasil = await tambahJadwal(jadwal);
+        if (berhasil) {
+          $("#tambahModal").modal("hide");
+          $("#formTambah")[0].reset();
+          muatJadwal();
+        }
+      });
+      
+      // Event listener untuk tombol update
+      $("#updateJadwal").click(async function() {
+        const id = $("#editId").val();
+        const jadwal = {
+          hari: $("#editHari").val(),
+          waktuMulai: $("#editWaktuMulai").val(),
+          waktuSelesai: $("#editWaktuSelesai").val(),
+          mataPelajaran: $("#editMataPelajaran").val(),
+          guru: $("#editGuru").val(),
+          kelas: $("#editKelas").val()
+        };
+        
+        const berhasil = await ubahJadwal(id, jadwal);
+        if (berhasil) {
+          $("#editModal").modal("hide");
+          muatJadwal();
+        }
+      });
+      
+      // Event listener untuk tombol cetak
+      $("#printBtn").click(function() {
+        // Siapkan data untuk dicetak
+        siapkanCetakan();
+        
+        // Cetak dokumen
+        window.print();
+      });
+      
+      // Event listener untuk tombol share WhatsApp
+      $("#shareBtn").click(function() {
+        shareWhatsApp();
+      });
+    });
+    
+    // Fungsi untuk memuat jadwal dari Firebase
+    async function muatJadwal() {
+      const jadwalList = await ambilDaftarJadwal();
+      const tbody = $("#jadwal-table tbody");
+      tbody.empty();
+      
+      if (jadwalList.length === 0) {
+        tbody.append(
+          `<tr>
+            <td colspan="6" class="text-center">Tidak ada jadwal pelajaran. Silakan tambah jadwal baru.</td>
+          </tr>`
+        );
+        return;
+      }
+      
+      jadwalList.forEach(jadwal => {
+        const waktu = `${formatWaktu(jadwal.waktuMulai)} - ${formatWaktu(jadwal.waktuSelesai)}`;
+        
+        tbody.append(
+          `<tr>
+            <td>${jadwal.hari}</td>
+            <td>${waktu}</td>
+            <td>${jadwal.mataPelajaran}</td>
+            <td>${jadwal.guru}</td>
+            <td>${jadwal.kelas}</td>
+            <td class="text-center no-print">
+              <button class="btn btn-sm btn-outline-primary btn-edit" data-id="${jadwal.id}">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger btn-hapus" data-id="${jadwal.id}">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>`
+        );
+      });
+      
+      // Tambahkan event listener untuk tombol edit dan hapus
+      $(".btn-edit").click(function() {
+        const id = $(this).data("id");
+        editJadwal(id);
+      });
+      
+      $(".btn-hapus").click(function() {
+        const id = $(this).data("id");
+        hapusJadwalConfirm(id);
+      });
     }
-
-    function shareWA() {
-      const text = "Jadwal Pelajaran Kelas XII SMK Plus Insan Cemerlang:\n\n" +
-                   document.getElementById("jadwal").innerText;
-      const url = "https://wa.me/?text=" + encodeURIComponent(text);
-      window.open(url, "_blank");
+    
+    // Fungsi untuk memformat waktu (dari format 24 jam ke 12 jam)
+    function formatWaktu(waktu) {
+      if (!waktu) return "";
+      
+      const [jam, menit] = waktu.split(":");
+      const jamNum = parseInt(jam);
+      const ampm = jamNum >= 12 ? "PM" : "AM";
+      const jam12 = jamNum % 12 || 12;
+      
+      return `${jam12}:${menit} ${ampm}`;
     }
-
-    // Tutup modal jika pengguna mengklik di luar modal
-    window.onclick = function(event) {
-      const modals = document.getElementsByClassName('modal');
-      for (let i = 0; i < modals.length; i++) {
-        if (event.target == modals[i]) {
-          modals[i].style.display = 'none';
+    
+    // Fungsi untuk mengedit jadwal
+    async function editJadwal(id) {
+      try {
+        // Dalam implementasi nyata, Anda akan mengambil data dari Firebase
+        // Di sini kita akan mengambil dari daftar yang sudah dimuat
+        const jadwalList = await ambilDaftarJadwal();
+        const jadwal = jadwalList.find(j => j.id === id);
+        
+        if (jadwal) {
+          $("#editId").val(jadwal.id);
+          $("#editHari").val(jadwal.hari);
+          $("#editWaktuMulai").val(jadwal.waktuMulai);
+          $("#editWaktuSelesai").val(jadwal.waktuSelesai);
+          $("#editMataPelajaran").val(jadwal.mataPelajaran);
+          $("#editGuru").val(jadwal.guru);
+          $("#editKelas").val(jadwal.kelas);
+          
+          $("#editModal").modal("show");
+        }
+      } catch (error) {
+        console.error("Error mengambil data jadwal: ", error);
+        alert("Terjadi kesalahan saat mengambil data jadwal");
+      }
+    }
+    
+    // Fungsi untuk konfirmasi hapus jadwal
+    async function hapusJadwalConfirm(id) {
+      if (confirm("Apakah Anda yakin ingin menghapus jadwal ini?")) {
+        const berhasil = await hapusJadwal(id);
+        if (berhasil) {
+          muatJadwal();
         }
       }
     }
-    <script type="module" src="main.js"></script>
+    
+    // Fungsi untuk menyiapkan data cetakan
+    async function siapkanCetakan() {
+      const jadwalList = await ambilDaftarJadwal();
+      const printBody = $("#printBody");
+      printBody.empty();
+      
+      jadwalList.forEach(jadwal => {
+        const waktu = `${formatWaktu(jadwal.waktuMulai)} - ${formatWaktu(jadwal.waktuSelesai)}`;
+        
+        printBody.append(
+          `<tr>
+            <td>${jadwal.hari}</td>
+            <td>${waktu}</td>
+            <td>${jadwal.mataPelajaran}</td>
+            <td>${jadwal.guru}</td>
+            <td>${jadwal.kelas}</td>
+          </tr>`
+        );
+      });
+    }
+    
+    // Fungsi untuk berbagi melalui WhatsApp
+    async function shareWhatsApp() {
+      const jadwalList = await ambilDaftarJadwal();
+      
+      if (jadwalList.length === 0) {
+        alert("Tidak ada jadwal untuk dibagikan");
+        return;
+      }
+      
+      // Membuat teks untuk dibagikan
+      let teks = "Jadwal Pelajaran:\n\n";
+      
+      // Kelompokkan jadwal berdasarkan hari
+      const jadwalByHari = {};
+      jadwalList.forEach(jadwal => {
+        if (!jadwalByHari[jadwal.hari]) {
+          jadwalByHari[jadwal.hari] = [];
+        }
+        jadwalByHari[jadwal.hari].push(jadwal);
+      });
+      
+      // Urutkan hari
+      const hariOrder = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      
+      hariOrder.forEach(hari => {
+        if (jadwalByHari[hari]) {
+          teks += `*${hari}:*\n`;
+          
+          jadwalByHari[hari].forEach(jadwal => {
+            const waktu = `${formatWaktu(jadwal.waktuMulai)} - ${formatWaktu(jadwal.waktuSelesai)}`;
+            teks += `${waktu} - ${jadwal.mataPelajaran} (${jadwal.guru}) - ${jadwal.kelas}\n`;
+          });
+          
+          teks += "\n";
+        }
+      });
+      
+      // Encode teks untuk URL
+      const teksEncoded = encodeURIComponent(teks);
+      
+      // Buka WhatsApp
+      window.open(`https://wa.me/?text=${teksEncoded}`, "_blank");
+    }
   </script>
 </body>
+
 </html>
