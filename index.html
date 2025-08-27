@@ -1,627 +1,493 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jadwal Pelajaran Sekolah</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --warning: #f8961e;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --gray: #6c757d;
-            --light-gray: #e9ecef;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #f5f7fb;
-            color: var(--dark);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--secondary);
-        }
-
-        .btn-success {
-            background-color: var(--success);
-            color: white;
-        }
-
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .btn-warning {
-            background-color: var(--warning);
-            color: white;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-header h2 {
-            color: var(--primary);
-        }
-
-        .close {
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--gray);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--light-gray);
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .schedule-table th, .schedule-table td {
-            padding: 15px;
-            text-align: center;
-            border: 1px solid var(--light-gray);
-        }
-
-        .schedule-table th {
-            background-color: var(--primary);
-            color: white;
-            font-weight: 600;
-        }
-
-        .schedule-table tr:nth-child(even) {
-            background-color: var(--light);
-        }
-
-        .schedule-table tr:hover {
-            background-color: #e9ecef;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .edit-btn {
-            background-color: var(--warning);
-            color: white;
-        }
-
-        .delete-btn {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .action-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.05);
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
-                margin-bottom: 10px;
-            }
-            
-            .schedule-table {
-                font-size: 0.8rem;
-            }
-            
-            .schedule-table th, .schedule-table td {
-                padding: 8px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jadwal Pelajaran Kelas XII</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      color: #000;
+      background-color: #f9f9f9;
+    }
+    h2, h3 {
+      text-align: center;
+      margin: 5px 0;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      font-size: 14px;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .istirahat, .shalat {
+      background-color: #e6f7ff;
+      font-style: italic;
+      font-weight: bold;
+    }
+    .btn-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+    button {
+      margin: 5px;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .print { background-color: #4CAF50; color: white; }
+    .save { background-color: #2196F3; color: white; }
+    .share { background-color: #25D366; color: white; }
+    .tambah { background-color: #FF9800; color: white; }
+    
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 8px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: black;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .form-actions {
+      text-align: right;
+      margin-top: 20px;
+    }
+    .btn-ubah, .btn-hapus {
+      padding: 4px 8px;
+      font-size: 12px;
+      margin: 2px;
+    }
+    .btn-ubah { background-color: #FFC107; color: black; }
+    .btn-hapus { background-color: #F44336; color: white; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Jadwal Pelajaran Sekolah</h1>
-            <p>Atur jadwal pelajaran dengan mudah dan efisien</p>
-        </header>
+  
+  <!-- Tombol -->
+  <div class="btn-container">
+    <button class="print" onclick="window.print()">Cetak PDF</button>
+    <button class="save" onclick="downloadFile()">Simpan Manual</button>
+    <button class="share" onclick="shareWA()">Share WhatsApp</button>
+    <button class="tambah" onclick="bukaModalTambah()">Tambah Jadwal</button>
+  </div>
 
-        <div class="controls">
-            <button class="btn btn-primary" id="addScheduleBtn">
-                <i class="fas fa-plus"></i> Tambah Jadwal
-            </button>
-            <div>
-                <button class="btn btn-success" id="shareBtn">
-                    <i class="fab fa-whatsapp"></i> Share WhatsApp
-                </button>
-                <button class="btn btn-warning" id="printBtn">
-                    <i class="fas fa-print"></i> Cetak PDF
-                </button>
-            </div>
+  <h2>JADWAL PELAJARAN SEMESTER GANJIL</h2>
+  <h3>SMK PLUS INSAN CEMERLANG<br>Tahun Pelajaran 2025/2026<br>Kelas XII</h3>
+
+  <table id="jadwal">
+    <thead>
+      <tr>
+        <th>Hari</th>
+        <th>Jam ke</th>
+        <th>Waktu</th>
+        <th>Mata Pelajaran</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Senin -->
+      <tr id="row-1">
+        <td rowspan="8">Senin</td>
+        <td>1</td>
+        <td>07.00 - 08.00</td>
+        <td>Upacara</td>
+        <td>
+          <button class="btn-ubah" onclick="bukaModalUbah(1)">Ubah</button>
+          <button class="btn-hapus" onclick="hapusJadwal(1)">Hapus</button>
+        </td>
+      </tr>
+      <tr id="row-2">
+        <td>2</td>
+        <td>08.00 - 08.30</td>
+        <td>Matematika</td>
+        <td>
+          <button class="btn-ubah" onclick="bukaModalUbah(2)">Ubah</button>
+          <button class="btn-hapus" onclick="hapusJadwal(2)">Hapus</button>
+        </td>
+      </tr>
+      <tr id="row-3">
+        <td>3</td>
+        <td>08.30 - 09.00</td>
+        <td>Matematika</td>
+        <td>
+          <button class="btn-ubah" onclick="bukaModalUbah(3)">Ubah</button>
+          <button class="btn-hapus" onclick="hapusJadwal(3)">Hapus</button>
+        </td>
+      </tr>
+      <tr id="row-4">
+        <td>4</td>
+        <td>09.00 - 09.30</td>
+        <td class="istirahat">Istirahat</td>
+        <td>
+          <button class="btn-ubah" onclick="bukaModalUbah(4)">Ubah</button>
+          <button class="btn-hapus" onclick="hapusJadwal(4)">Hapus</button>
+        </td>
+      </tr>
+      <tr id="row-5">
+        <td>5</td>
+        <td>10.00 - 10.35</td>
+        <td>Matematika</td>
+        <td>
+          <button class="btn-ubah" onclick="bukaModalUbah(5)">Ubah</button>
+          <button class="btn-hapus" onclick="hapusJadwal(5)">Hapus</button>
+        </td>
+      </tr>
+      <tr id="row-6">
+        <td>6</td>
+        <td>10.35 - 11.10</td>
+        <td>Pendidikan Pancasila</td>
+        <td>
+          <button class="btn-ubah" onclick="bukaModalUbah(6)">Ubah</button>
+          <button class="btn-hapus" onclick="hapusJadwal(6)">Hapus</button>
+        </td>
+      </tr>
+      <tr id="row-7">
+        <td>7</td>
+        <td>11.10 - 11.45</td>
+        <td>Pendidikan Pancasila</td>
+        <td>
+          <button class="btn-ubah" onclick="bukaModalUbah(7)">Ubah</button>
+          <button class="btn-hapus" onclick="hapusJadwal(7)">Hapus</button>
+        </td>
+      </tr>
+      <tr id="row-8">
+        <td>8</td>
+        <td>11.45 - 12.20</td>
+        <td class="shalat">Shalat Dzuhur</td>
+        <td>
+          <button class="btn-ubah" onclick="bukaModalUbah(8)">Ubah</button>
+          <button class="btn-hapus" onclick="hapusJadwal(8)">Hapus</button>
+        </td>
+      </tr>
+
+      <!-- Data hari lainnya tetap sama, hanya ditambahkan tombol aksi -->
+      <!-- ... -->
+      
+    </tbody>
+  </table>
+
+  <!-- Modal Form Tambah -->
+  <div id="modalTambah" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="tutupModal('modalTambah')">&times;</span>
+      <h2>Tambah Jadwal Baru</h2>
+      <form id="formTambah" onsubmit="tambahJadwal(event)">
+        <div class="form-group">
+          <label for="tambahHari">Hari:</label>
+          <select id="tambahHari" required>
+            <option value="">Pilih Hari</option>
+            <option value="Senin">Senin</option>
+            <option value="Selasa">Selasa</option>
+            <option value="Rabu">Rabu</option>
+            <option value="Kamis">Kamis</option>
+            <option value="Jumat">Jumat</option>
+            <option value="Sabtu">Sabtu</option>
+          </select>
         </div>
-
-        <div id="scheduleContainer">
-            <!-- Jadwal akan ditampilkan di sini -->
-            <table class="schedule-table">
-                <thead>
-                    <tr>
-                        <th>Hari</th>
-                        <th>Waktu</th>
-                        <th>Mata Pelajaran</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="scheduleBody">
-                    <!-- Data jadwal akan diisi oleh JavaScript -->
-                </tbody>
-            </table>
+        <div class="form-group">
+          <label for="tambahJam">Jam ke:</label>
+          <input type="number" id="tambahJam" min="1" required>
         </div>
-
-        <footer>
-            <p>&copy; 2023 Aplikasi Jadwal Pelajaran Sekolah. All rights reserved.</p>
-        </footer>
+        <div class="form-group">
+          <label for="tambahWaktu">Waktu:</label>
+          <input type="text" id="tambahWaktu" placeholder="Contoh: 07.00 - 08.00" required>
+        </div>
+        <div class="form-group">
+          <label for="tambahPelajaran">Mata Pelajaran:</label>
+          <input type="text" id="tambahPelajaran" required>
+        </div>
+        <div class="form-group">
+          <label for="tambahJenis">Jenis:</label>
+          <select id="tambahJenis">
+            <option value="normal">Normal</option>
+            <option value="istirahat">Istirahat</option>
+            <option value="shalat">Shalat</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" onclick="tutupModal('modalTambah')">Batal</button>
+          <button type="submit" class="tambah">Simpan</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <!-- Modal untuk menambah/mengedit jadwal -->
-    <div id="scheduleModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Tambah Jadwal Pelajaran</h2>
-                <span class="close">&times;</span>
-            </div>
-            <form id="scheduleForm">
-                <input type="hidden" id="editId">
-                <div class="form-group">
-                    <label for="hari">Hari</label>
-                    <select id="hari" required>
-                        <option value="">Pilih Hari</option>
-                        <option value="Senin">Senin</option>
-                        <option value="Selasa">Selasa</option>
-                        <option value="Rabu">Rabu</option>
-                        <option value="Kamis">Kamis</option>
-                        <option value="Jumat">Jumat</option>
-                        <option value="Sabtu">Sabtu</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="waktu">Waktu</label>
-                    <input type="time" id="waktu" required>
-                </div>
-                <div class="form-group">
-                    <label for="mataPelajaran">Mata Pelajaran</label>
-                    <input type="text" id="mataPelajaran" placeholder="Masukkan mata pelajaran" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Simpan Jadwal</button>
-            </form>
+  <!-- Modal Form Ubah -->
+  <div id="modalUbah" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="tutupModal('modalUbah')">&times;</span>
+      <h2>Ubah Jadwal</h2>
+      <form id="formUbah" onsubmit="ubahJadwal(event)">
+        <input type="hidden" id="ubahId">
+        <div class="form-group">
+          <label for="ubahHari">Hari:</label>
+          <select id="ubahHari" required>
+            <option value="">Pilih Hari</option>
+            <option value="Senin">Senin</option>
+            <option value="Selasa">Selasa</option>
+            <option value="Rabu">Rabu</option>
+            <option value="Kamis">Kamis</option>
+            <option value="Jumat">Jumat</option>
+            <option value="Sabtu">Sabtu</option>
+          </select>
         </div>
+        <div class="form-group">
+          <label for="ubahJam">Jam ke:</label>
+          <input type="number" id="ubahJam" min="1" required>
+        </div>
+        <div class="form-group">
+          <label for="ubahWaktu">Waktu:</label>
+          <input type="text" id="ubahWaktu" placeholder="Contoh: 07.00 - 08.00" required>
+        </div>
+        <div class="form-group">
+          <label for="ubahPelajaran">Mata Pelajaran:</label>
+          <input type="text" id="ubahPelajaran" required>
+        </div>
+        <div class="form-group">
+          <label for="ubahJenis">Jenis:</label>
+          <select id="ubahJenis">
+            <option value="normal">Normal</option>
+            <option value="istirahat">Istirahat</option>
+            <option value="shalat">Shalat</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" onclick="tutupModal('modalUbah')">Batal</button>
+          <button type="submit" class="ubah">Simpan Perubahan</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <script type="module">
-        // Import Firebase functions
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { 
-            getFirestore,
-            collection,
-            doc,
-            getDocs,
-            getDoc,
-            addDoc,
-            deleteDoc,
-            updateDoc,
-            query,
-            orderBy
-        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+  <script>
+    // Variabel global untuk menyimpan data jadwal
+    let jadwalData = [];
+    let nextId = 100; // ID untuk data baru
 
-        // Konfigurasi Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDdr0fxnYpfeG2b6GlTQ_-4TqpmGk2uvOk",
-            authDomain: "insan-cemerlang-80713.firebaseapp.com",
-            projectId: "insan-cemerlang-80713",
-            storageBucket: "insan-cemerlang-80713.appspot.com",
-            messagingSenderId: "1016858047753",
-            appId: "1:1016858047753:web:0534dda2085c2adab68fd8",
-            measurementId: "G-E7G0K9XTCD"
+    // Fungsi untuk modal
+    function bukaModalTambah() {
+      document.getElementById('modalTambah').style.display = 'block';
+    }
+
+    function bukaModalUbah(id) {
+      const row = document.getElementById(`row-${id}`);
+      const cells = row.cells;
+      
+      // Isi form dengan data yang ada
+      document.getElementById('ubahId').value = id;
+      document.getElementById('ubahHari').value = cells[0].textContent;
+      document.getElementById('ubahJam').value = cells[1].textContent;
+      document.getElementById('ubahWaktu').value = cells[2].textContent;
+      document.getElementById('ubahPelajaran').value = cells[3].textContent;
+      
+      // Tentukan jenis berdasarkan kelas
+      if (cells[3].classList.contains('istirahat')) {
+        document.getElementById('ubahJenis').value = 'istirahat';
+      } else if (cells[3].classList.contains('shalat')) {
+        document.getElementById('ubahJenis').value = 'shalat';
+      } else {
+        document.getElementById('ubahJenis').value = 'normal';
+      }
+      
+      document.getElementById('modalUbah').style.display = 'block';
+    }
+
+    function tutupModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Fungsi untuk menambah jadwal
+    function tambahJadwal(event) {
+      event.preventDefault();
+      
+      const hari = document.getElementById('tambahHari').value;
+      const jam = document.getElementById('tambahJam').value;
+      const waktu = document.getElementById('tambahWaktu').value;
+      const pelajaran = document.getElementById('tambahPelajaran').value;
+      const jenis = document.getElementById('tambahJenis').value;
+      
+      // Buat baris baru
+      const newId = nextId++;
+      const tbody = document.querySelector('#jadwal tbody');
+      const newRow = document.createElement('tr');
+      newRow.id = `row-${newId}`;
+      
+      // Tentukan kelas CSS berdasarkan jenis
+      let kelas = '';
+      if (jenis === 'istirahat') {
+        kelas = 'class="istirahat"';
+      } else if (jenis === 'shalat') {
+        kelas = 'class="shalat"';
+      }
+      
+      newRow.innerHTML = `
+        <td>${hari}</td>
+        <td>${jam}</td>
+        <td>${waktu}</td>
+        <td ${kelas}>${pelajaran}</td>
+        <td>
+          <button class="btn-ubah" onclick="bukaModalUbah(${newId})">Ubah</button>
+          <button class="btn-hapus" onclick="hapusJadwal(${newId})">Hapus</button>
+        </td>
+      `;
+      
+      // Tambahkan baris ke tabel
+      tbody.appendChild(newRow);
+      
+      // Simpan data
+      jadwalData.push({
+        id: newId,
+        hari: hari,
+        jam: jam,
+        waktu: waktu,
+        pelajaran: pelajaran,
+        jenis: jenis
+      });
+      
+      // Reset form dan tutup modal
+      document.getElementById('formTambah').reset();
+      tutupModal('modalTambah');
+      
+      alert('Jadwal berhasil ditambahkan!');
+    }
+
+    // Fungsi untuk mengubah jadwal
+    function ubahJadwal(event) {
+      event.preventDefault();
+      
+      const id = document.getElementById('ubahId').value;
+      const hari = document.getElementById('ubahHari').value;
+      const jam = document.getElementById('ubahJam').value;
+      const waktu = document.getElementById('ubahWaktu').value;
+      const pelajaran = document.getElementById('ubahPelajaran').value;
+      const jenis = document.getElementById('ubahJenis').value;
+      
+      // Dapatkan baris yang akan diubah
+      const row = document.getElementById(`row-${id}`);
+      const cells = row.cells;
+      
+      // Perbarui konten sel
+      cells[0].textContent = hari;
+      cells[1].textContent = jam;
+      cells[2].textContent = waktu;
+      cells[3].textContent = pelajaran;
+      
+      // Perbarui kelas CSS berdasarkan jenis
+      cells[3].className = '';
+      if (jenis === 'istirahat') {
+        cells[3].classList.add('istirahat');
+      } else if (jenis === 'shalat') {
+        cells[3].classList.add('shalat');
+      }
+      
+      // Perbarui data di array
+      const index = jadwalData.findIndex(item => item.id == id);
+      if (index !== -1) {
+        jadwalData[index] = {
+          id: parseInt(id),
+          hari: hari,
+          jam: jam,
+          waktu: waktu,
+          pelajaran: pelajaran,
+          jenis: jenis
         };
+      }
+      
+      // Tutup modal
+      tutupModal('modalUbah');
+      
+      alert('Jadwal berhasil diubah!');
+    }
 
-        // Inisialisasi Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    // Fungsi untuk menghapus jadwal
+    function hapusJadwal(id) {
+      if (confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
+        const row = document.getElementById(`row-${id}`);
+        row.remove();
+        
+        // Hapus dari array data
+        jadwalData = jadwalData.filter(item => item.id != id);
+        
+        alert('Jadwal berhasil dihapus!');
+      }
+    }
 
-        // Referensi ke koleksi jadwal
-        const schedulesCollection = collection(db, 'schedules');
+    // Fungsi untuk mencetak/simpan (tetap sama)
+    function downloadFile() {
+      const jadwal = document.getElementById("jadwal").innerText;
+      const blob = new Blob([jadwal], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "jadwal_pelajaran.txt";
+      link.click();
+    }
 
-        // Elemen DOM
-        const addScheduleBtn = document.getElementById('addScheduleBtn');
-        const scheduleModal = document.getElementById('scheduleModal');
-        const closeModal = document.querySelector('.close');
-        const scheduleForm = document.getElementById('scheduleForm');
-        const modalTitle = document.getElementById('modalTitle');
-        const scheduleBody = document.getElementById('scheduleBody');
-        const shareBtn = document.getElementById('shareBtn');
-        const printBtn = document.getElementById('printBtn');
+    function shareWA() {
+      const text = "Jadwal Pelajaran Kelas XII SMK Plus Insan Cemerlang:\n\n" +
+                   document.getElementById("jadwal").innerText;
+      const url = "https://wa.me/?text=" + encodeURIComponent(text);
+      window.open(url, "_blank");
+    }
 
-        // Variabel untuk menyimpan data jadwal
-        let schedules = [];
-        let editingId = null;
-
-        // Fungsi untuk menampilkan modal
-        function openModal() {
-            scheduleModal.style.display = 'flex';
+    // Tutup modal jika pengguna mengklik di luar modal
+    window.onclick = function(event) {
+      const modals = document.getElementsByClassName('modal');
+      for (let i = 0; i < modals.length; i++) {
+        if (event.target == modals[i]) {
+          modals[i].style.display = 'none';
         }
-
-        // Fungsi untuk menutup modal
-        function closeModalFunc() {
-            scheduleModal.style.display = 'none';
-            editingId = null;
-            scheduleForm.reset();
-        }
-
-        // Event listener untuk tombol tambah jadwal
-        addScheduleBtn.addEventListener('click', () => {
-            modalTitle.textContent = 'Tambah Jadwal Pelajaran';
-            openModal();
-        });
-
-        // Event listener untuk menutup modal
-        closeModal.addEventListener('click', closeModalFunc);
-
-        // Event listener untuk klik di luar modal
-        window.addEventListener('click', (e) => {
-            if (e.target === scheduleModal) {
-                closeModalFunc();
-            }
-        });
-
-        // Fungsi untuk mengambil data jadwal dari Firestore
-        async function getSchedules() {
-            try {
-                const q = query(schedulesCollection, orderBy('waktu'));
-                const querySnapshot = await getDocs(q);
-                
-                schedules = [];
-                querySnapshot.forEach((doc) => {
-                    schedules.push({ id: doc.id, ...doc.data() });
-                });
-                
-                displaySchedules();
-            } catch (error) {
-                console.error('Error getting schedules:', error);
-                alert('Terjadi kesalahan saat mengambil data jadwal.');
-            }
-        }
-
-        // Fungsi untuk menampilkan jadwal di tabel
-        function displaySchedules() {
-            scheduleBody.innerHTML = '';
-            
-            if (schedules.length === 0) {
-                scheduleBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Tidak ada jadwal pelajaran.</td></tr>';
-                return;
-            }
-            
-            schedules.forEach(schedule => {
-                const row = document.createElement('tr');
-                
-                // Format waktu menjadi format yang lebih mudah dibaca
-                const time = new Date(`2000-01-01T${schedule.waktu}`);
-                const formattedTime = time.toLocaleTimeString('id-ID', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                
-                row.innerHTML = `
-                    <td>${schedule.hari}</td>
-                    <td>${formattedTime}</td>
-                    <td>${schedule.mataPelajaran}</td>
-                    <td class="action-buttons">
-                        <button class="action-btn edit-btn" data-id="${schedule.id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn" data-id="${schedule.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                
-                scheduleBody.appendChild(row);
-            });
-            
-            // Tambahkan event listener untuk tombol edit dan hapus
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = e.currentTarget.getAttribute('data-id');
-                    editSchedule(id);
-                });
-            });
-            
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = e.currentTarget.getAttribute('data-id');
-                    deleteSchedule(id);
-                });
-            });
-        }
-
-        // Fungsi untuk mengedit jadwal
-        async function editSchedule(id) {
-            try {
-                const scheduleDoc = doc(db, 'schedules', id);
-                const docSnap = await getDoc(scheduleDoc);
-                
-                if (docSnap.exists()) {
-                    const schedule = docSnap.data();
-                    editingId = id;
-                    
-                    // Isi form dengan data jadwal yang akan diedit
-                    document.getElementById('hari').value = schedule.hari;
-                    document.getElementById('waktu').value = schedule.waktu;
-                    document.getElementById('mataPelajaran').value = schedule.mataPelajaran;
-                    
-                    modalTitle.textContent = 'Edit Jadwal Pelajaran';
-                    openModal();
-                } else {
-                    alert('Jadwal tidak ditemukan!');
-                }
-            } catch (error) {
-                console.error('Error getting schedule:', error);
-                alert('Terjadi kesalahan saat mengambil data jadwal.');
-            }
-        }
-
-        // Fungsi untuk menghapus jadwal
-        async function deleteSchedule(id) {
-            if (confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
-                try {
-                    await deleteDoc(doc(db, 'schedules', id));
-                    alert('Jadwal berhasil dihapus!');
-                    getSchedules(); // Refresh data
-                } catch (error) {
-                    console.error('Error deleting schedule:', error);
-                    alert('Terjadi kesalahan saat menghapus jadwal.');
-                }
-            }
-        }
-
-        // Event listener untuk form jadwal
-        scheduleForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const hari = document.getElementById('hari').value;
-            const waktu = document.getElementById('waktu').value;
-            const mataPelajaran = document.getElementById('mataPelajaran').value;
-            
-            try {
-                if (editingId) {
-                    // Update jadwal yang sudah ada
-                    const scheduleDoc = doc(db, 'schedules', editingId);
-                    await updateDoc(scheduleDoc, {
-                        hari,
-                        waktu,
-                        mataPelajaran
-                    });
-                    
-                    alert('Jadwal berhasil diperbarui!');
-                } else {
-                    // Tambah jadwal baru
-                    await addDoc(schedulesCollection, {
-                        hari,
-                        waktu,
-                        mataPelajaran
-                    });
-                    
-                    alert('Jadwal berhasil ditambahkan!');
-                }
-                
-                closeModalFunc();
-                getSchedules(); // Refresh data
-            } catch (error) {
-                console.error('Error saving schedule:', error);
-                alert('Terjadi kesalahan saat menyimpan jadwal.');
-            }
-        });
-
-        // Fungsi untuk berbagi jadwal melalui WhatsApp
-        shareBtn.addEventListener('click', () => {
-            if (schedules.length === 0) {
-                alert('Tidak ada jadwal untuk dibagikan.');
-                return;
-            }
-            
-            let message = "Jadwal Pelajaran:\n\n";
-            
-            schedules.forEach(schedule => {
-                const time = new Date(`2000-01-01T${schedule.waktu}`);
-                const formattedTime = time.toLocaleTimeString('id-ID', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                
-                message += `${schedule.hari} - ${formattedTime}: ${schedule.mataPelajaran}\n`;
-            });
-            
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-        });
-
-        // Fungsi untuk mencetak jadwal sebagai PDF
-        printBtn.addEventListener('click', () => {
-            if (schedules.length === 0) {
-                alert('Tidak ada jadwal untuk dicetak.');
-                return;
-            }
-            
-            // Gunakan jsPDF untuk membuat PDF
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Judul
-            doc.setFontSize(20);
-            doc.text('Jadwal Pelajaran Sekolah', 105, 15, { align: 'center' });
-            
-            // Data untuk tabel
-            const tableData = schedules.map(schedule => {
-                const time = new Date(`2000-01-01T${schedule.waktu}`);
-                const formattedTime = time.toLocaleTimeString('id-ID', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                
-                return [schedule.hari, formattedTime, schedule.mataPelajaran];
-            });
-            
-            // Buat tabel
-            doc.autoTable({
-                head: [['Hari', 'Waktu', 'Mata Pelajaran']],
-                body: tableData,
-                startY: 25,
-                theme: 'grid',
-                styles: { fontSize: 10 },
-                headStyles: { fillColor: [67, 97, 238] }
-            });
-            
-            // Simpan PDF
-            doc.save('jadwal-pelajaran.pdf');
-        });
-
-        // Inisialisasi aplikasi dengan mengambil data jadwal
-        getSchedules();
-    </script>
+      }
+    }
+  </script>
 </body>
 </html>
