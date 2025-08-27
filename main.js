@@ -29,7 +29,7 @@ const basisdata = getFirestore(aplikasi)
 
 // Fungsi untuk mengambil daftar jadwal pelajaran
 export async function ambilDaftarJadwal() {
-  const refDokumen = collection(basisdata, "jadwal");
+  const refDokumen = collection(basisdata, "jadwal pelajaran");
   const kueri = query(refDokumen, orderBy("hari"), orderBy("jamKe"));
   const cuplikanKueri = await getDocs(kueri);
   
@@ -52,7 +52,7 @@ export async function ambilDaftarJadwal() {
 export async function tambahJadwal(hari, jamKe, waktu, pelajaran, jenis) {
   try {
     // Menyimpan data ke Firebase
-    const refDokumen = await addDoc(collection(basisdata, "jadwal"), {
+    const refDokumen = await addDoc(collection(basisdata, "jadwal pelajaran"), {
       hari: hari, 
       jamKe: jamKe,
       waktu: waktu,
@@ -73,7 +73,7 @@ export async function tambahJadwal(hari, jamKe, waktu, pelajaran, jenis) {
 // Fungsi untuk menghapus jadwal
 export async function hapusJadwal(id) {
   try {
-    await deleteDoc(doc(basisdata, "jadwal", id))
+    await deleteDoc(doc(basisdata, "jadwal pelajaran", id))
     console.log('Berhasil menghapus data jadwal')
   } catch (error) {
     console.log('Gagal menghapus data jadwal:', error)
@@ -85,7 +85,7 @@ export async function hapusJadwal(id) {
 export async function ubahJadwal(id, hari, jamKe, waktu, pelajaran, jenis) {
   try {
     await updateDoc(
-      doc(basisdata, "jadwal", id),
+      doc(basisdata, "jadwal pelajaran", id),
       { 
         hari: hari, 
         jamKe: jamKe, 
@@ -94,9 +94,9 @@ export async function ubahJadwal(id, hari, jamKe, waktu, pelajaran, jenis) {
         jenis: jenis 
       }
     )
-    console.log('Berhasil mengubah data jadwal')
+    console.log('Berhasil mengubah data jadwal pelajaran')
   } catch (error) {
-    console.log('Gagal mengubah data jadwal:', error)
+    console.log('Gagal mengubah data jadwal pelajaran:', error)
     throw error;
   }
 }
@@ -104,7 +104,7 @@ export async function ubahJadwal(id, hari, jamKe, waktu, pelajaran, jenis) {
 // Fungsi untuk mengambil data jadwal berdasarkan ID
 export async function ambilJadwal(id) {
   try {
-    const refDokumen = doc(basisdata, "jadwal", id)
+    const refDokumen = doc(basisdata, "jadwal pelajaran", id)
     const snapshotDokumen = await getDoc(refDokumen)
     
     if (snapshotDokumen.exists()) {
@@ -117,7 +117,7 @@ export async function ambilJadwal(id) {
       return null;
     }
   } catch (error) {
-    console.log('Gagal mengambil data jadwal:', error)
+    console.log('Gagal mengambil data jadwal pelajaran:', error)
     throw error;
   }
 }
@@ -126,7 +126,7 @@ export async function ambilJadwal(id) {
 export async function muatJadwalKeTabel() {
   try {
     const jadwal = await ambilDaftarJadwal();
-    const tbody = document.querySelector('#jadwal tbody');
+    const tbody = document.querySelector('#jadwalpelajaran tbody');
     
     // Kosongkan tabel terlebih dahulu
     tbody.innerHTML = '';
@@ -191,7 +191,7 @@ export async function muatJadwalKeTabel() {
       }
     });
   } catch (error) {
-    console.error('Gagal memuat jadwal:', error);
+    console.error('Gagal memuat jadwal pelajaran:', error);
   }
 }
 
@@ -209,7 +209,7 @@ export async function tambahJadwalDariForm() {
     tutupModal('tambah');
     alert('Jadwal berhasil ditambahkan!');
   } catch (error) {
-    alert('Gagal menambahkan jadwal: ' + error.message);
+    alert('Gagal menambahkan jadwal pelajaran: ' + error.message);
   }
 }
 
