@@ -73,6 +73,15 @@
       display: none;
     }
     
+    .alert-firebase {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1050;
+      max-width: 350px;
+    }
+    
     @media print {
       body * {
         visibility: hidden;
@@ -97,6 +106,13 @@
 </head>
 
 <body>
+  <!-- Alert untuk error Firebase -->
+  <div class="alert alert-warning alert-dismissible fade show alert-firebase" role="alert">
+    <strong><i class="fas fa-exclamation-triangle me-2"></i>Koneksi Error</strong>
+    <span id="error-message">Tidak dapat terhubung ke server. Data yang ditampilkan mungkin tidak terbaru.</span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark mb-4">
     <div class="container">
@@ -300,7 +316,6 @@
       collection,
       doc,
       getDocs,
-      getDoc,
       addDoc,
       deleteDoc,
       updateDoc,
@@ -325,6 +340,7 @@
     // Fungsi untuk mengambil daftar jadwal
     window.ambilDaftarJadwal = async function() {
       try {
+        // Coba ambil data dari Firebase
         const q = query(collection(db, "jadwal"), orderBy("hariOrder", "asc"), orderBy("waktuMulai", "asc"));
         const querySnapshot = await getDocs(q);
         const jadwalList = [];
@@ -333,10 +349,30 @@
           jadwalList.push({ id: doc.id, ...doc.data() });
         });
         
+        // Simpan ke localStorage sebagai backup
+        localStorage.setItem('jadwalData', JSON.stringify(jadwalList));
+        
+        // Sembunyikan alert error jika sebelumnya muncul
+        $('.alert-firebase').hide();
+        
         return jadwalList;
       } catch (error) {
-        console.error("Error mengambil data: ", error);
-        alert("Terjadi kesalahan saat mengambil data jadwal");
+        console.error("Error mengambil data dari Firebase: ", error);
+        
+        // Tampilkan alert error
+        $('#error-message').text('Error: ' + error.message);
+        $('.alert-firebase').show();
+        
+        // Coba ambil dari localStorage sebagai fallback
+        try {
+          const localData = localStorage.getItem('jadwalData');
+          if (localData) {
+            return JSON.parse(localData);
+          }
+        } catch (e) {
+          console.error("Error mengambil data dari localStorage: ", e);
+        }
+        
         return [];
       }
     }
@@ -350,12 +386,37 @@
         };
         jadwal.hariOrder = hariOrderMap[jadwal.hari] || 7;
         
-        await addDoc(collection(db, "jadwal"), jadwal);
+        // Coba simpan ke Firebase
+        const docRef = await addDoc(collection(db, "jadwal"), jadwal);
+        
+        // Update data di localStorage juga
+        const currentData = JSON.parse(localStorage.getItem('jadwalData') || '[]');
+        currentData.push({ id: docRef.id, ...jadwal });
+        localStorage.setItem('jadwalData', JSON.stringify(currentData));
+        
+        // Sembunyikan alert error jika sebelumnya muncul
+        $('.alert-firebase').hide();
+        
         return true;
       } catch (error) {
-        console.error("Error menambah jadwal: ", error);
-        alert("Terjadi kesalahan saat menambah jadwal");
-        return false;
+        console.error("Error menambah jadwal ke Firebase: ", error);
+        
+        // Simpan ke localStorage sebagai fallback
+        try {
+          const currentData = JSON.parse(localStorage.getItem('jadwalData') || '[]');
+          jadwal.id = 'local-' + Date.now();
+          currentData.push(jadwal);
+          localStorage.setItem('jadwalData', JSON.stringify(currentData));
+          
+          // Tampilkan alert warning
+          $('#error-message').text('Data disimpan secara lokal karena koneksi error: ' + error.message);
+          $('.alert-firebase').show();
+          
+          return true;
+        } catch (e) {
+          console.error("Error menyimpan ke localStorage: ", e);
+          return false;
+        }
       }
     }
 
@@ -368,25 +429,79 @@
         };
         jadwal.hariOrder = hariOrderMap[jadwal.hari] || 7;
         
+        // Coba update di Firebase
         const jadwalRef = doc(db, "jadwal", id);
         await updateDoc(jadwalRef, jadwal);
+        
+        // Update data di localStorage juga
+        const currentData = JSON.parse(localStorage.getItem('jadwalData') || '[]');
+        const index = currentData.findIndex(item => item.id === id);
+        if (index !== -1) {
+          currentData[index] = { id, ...jadwal };
+          localStorage.setItem('jadwalData', JSON.stringify(currentData));
+        }
+        
+        // Sembunyikan alert error jika sebelumnya muncul
+        $('.alert-firebase').hide();
+        
         return true;
       } catch (error) {
-        console.error("Error mengubah jadwal: ", error);
-        alert("Terjadi kesalahan saat mengubah jadwal");
-        return false;
+        console.error("Error mengubah jadwal di Firebase: ", error);
+        
+        // Update di localStorage sebagai fallback
+        try {
+          const currentData = JSON.parse(localStorage.getItem('jadwalData') || '[]');
+          const index = currentData.findIndex(item => item.id === id);
+          if (index !== -1) {
+            currentData[index] = { id, ...jadwal };
+            localStorage.setItem('jadwalData', JSON.stringify(currentData));
+          }
+          
+          // Tampilkan alert warning
+          $('#error-message').text('Data diperbarui secara lokal karena koneksi error: ' + error.message);
+          $('.alert-firebase').show();
+          
+          return true;
+        } catch (e) {
+          console.error("Error update ke localStorage: ", e);
+          return false;
+        }
       }
     }
 
     // Fungsi untuk menghapus jadwal
     window.hapusJadwal = async function(id) {
       try {
+        // Coba hapus dari Firebase
         await deleteDoc(doc(db, "jadwal", id));
+        
+        // Hapus dari localStorage juga
+        const currentData = JSON.parse(localStorage.getItem('jadwalData') || '[]');
+        const filteredData = currentData.filter(item => item.id !== id);
+        localStorage.setItem('jadwalData', JSON.stringify(filteredData));
+        
+        // Sembunyikan alert error jika sebelumnya muncul
+        $('.alert-firebase').hide();
+        
         return true;
       } catch (error) {
-        console.error("Error menghapus jadwal: ", error);
-        alert("Terjadi kesalahan saat menghapus jadwal");
-        return false;
+        console.error("Error menghapus jadwal dari Firebase: ", error);
+        
+        // Hapus dari localStorage sebagai fallback
+        try {
+          const currentData = JSON.parse(localStorage.getItem('jadwalData') || '[]');
+          const filteredData = currentData.filter(item => item.id !== id);
+          localStorage.setItem('jadwalData', JSON.stringify(filteredData));
+          
+          // Tampilkan alert warning
+          $('#error-message').text('Data dihapus secara lokal karena koneksi error: ' + error.message);
+          $('.alert-firebase').show();
+          
+          return true;
+        } catch (e) {
+          console.error("Error hapus dari localStorage: ", e);
+          return false;
+        }
       }
     }
   </script>
@@ -418,6 +533,9 @@
           $("#tambahModal").modal("hide");
           $("#formTambah")[0].reset();
           muatJadwal();
+          alert("Jadwal berhasil disimpan!");
+        } else {
+          alert("Gagal menyimpan jadwal. Silakan coba lagi.");
         }
       });
       
@@ -437,6 +555,9 @@
         if (berhasil) {
           $("#editModal").modal("hide");
           muatJadwal();
+          alert("Jadwal berhasil diperbarui!");
+        } else {
+          alert("Gagal memperbarui jadwal. Silakan coba lagi.");
         }
       });
       
@@ -519,8 +640,6 @@
     // Fungsi untuk mengedit jadwal
     async function editJadwal(id) {
       try {
-        // Dalam implementasi nyata, Anda akan mengambil data dari Firebase
-        // Di sini kita akan mengambil dari daftar yang sudah dimuat
         const jadwalList = await ambilDaftarJadwal();
         const jadwal = jadwalList.find(j => j.id === id);
         
@@ -547,6 +666,9 @@
         const berhasil = await hapusJadwal(id);
         if (berhasil) {
           muatJadwal();
+          alert("Jadwal berhasil dihapus!");
+        } else {
+          alert("Gagal menghapus jadwal. Silakan coba lagi.");
         }
       }
     }
