@@ -738,6 +738,90 @@
       window.open(`https://wa.me/?text=${teksEncoded}`, "_blank");
     }
   </script>
+  <!-- Modal Tim Pengembang -->
+<div class="modal fade" id="teamModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tim Pengembang Jadwal Pelajaran Digital</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="team-member">
+          <div class="team-member-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="team-member-info">
+            <h6>Nurul Hikmah Aulia</h6>
+          </div>
+        </div>
+        <div class="team-member">
+          <div class="team-member-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="team-member-info">
+            <h6>Resti Aulia</h6>
+          </div>
+        </div>
+        <div class="team-member">
+          <div class="team-member-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="team-member-info">
+            <h6>Rijwan</h6>
+          </div>
+        </div>
+        <div class="team-member">
+          <div class="team-member-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="team-member-info">
+            <h6>Moch Akbar</h6>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer dengan kredit tim -->
+<footer class="container mt-5 mb-4">
+  <div class="text-center">
+    <p class="text-muted">Dikembangkan oleh <a href="#" data-bs-toggle="modal" data-bs-target="#teamModal">Tim Pengembang Jadwal Pelajaran Digital</a> &copy; 2025</p>
+  </div>
+</footer>
+
+<style>
+  /* Gaya tambahan untuk tim pengembang */
+  .team-member {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .team-member-avatar {
+    font-size: 2.5rem;
+    color: #4361ee;
+    margin-right: 15px;
+  }
+  
+  .team-member-info h6 {
+    margin-bottom: 3px;
+    color: #212529;
+  }
+  
+  .team-member-info p {
+    margin-bottom: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+</style>
 </body>
 
 </html>
